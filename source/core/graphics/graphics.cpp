@@ -6,7 +6,7 @@
 
 static GLFWwindow* window;
 
-bool GraphicsInitWin32() {
+bool GraphicsInitWin32(tg::TaskGraph& tg) {
     if(!glfwInit()) {
         LOG_ERR("glfwInit() failed");
         return false;
@@ -39,6 +39,15 @@ bool GraphicsInitWin32() {
     glClearColor(0.1f, 0.0f, 0.2f, 1.0f);    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    tg.Add("FrameStart",
+        [](tg::TaskGraph* tg){
+            tg->AcquireWrite<int>("FrameStart");
+        },
+        [](){
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+    );
+
     return true;
 }
 
@@ -48,12 +57,12 @@ bool GraphicsUpdate() {
         return false;
     }
     glfwPollEvents();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
-    glfwSwapBuffers(window);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return true;
+}
+
+void GraphicsSwapBuffers() {
+    glfwSwapBuffers(window);
 }
 
 void GraphicsCleanup() {
